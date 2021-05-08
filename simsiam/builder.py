@@ -26,14 +26,14 @@ class SimSiam(nn.Module):
                                         nn.Linear(prev_dim, prev_dim, bias=False),
                                         nn.BatchNorm1d(prev_dim, affine=True),
                                         nn.ReLU(inplace=True), # second layer
-                                        self.encoder.fc,
+                                        self.encoder.fc, # caveat: this fc layer has bias but canceled out by BN 
                                         nn.BatchNorm1d(dim, affine=False)) # output layer
 
         # build a 2-layer predictor
         self.predictor = nn.Sequential(nn.Linear(dim, pred_dim, bias=False),
                                         nn.BatchNorm1d(pred_dim, affine=True),
                                         nn.ReLU(inplace=True), # hidden layer
-                                        nn.Linear(pred_dim, dim, bias=False)) # output layer
+                                        nn.Linear(pred_dim, dim, bias=True)) # output layer
 
     def forward(self, x1, x2):
         """
