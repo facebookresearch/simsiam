@@ -15,25 +15,26 @@ class SimSiam(nn.Module):
         super(SimSiam, self).__init__()
 
         # create the encoder
-        # num_classes is the output fc dimension
-        self.encoder = base_encoder(num_classes=dim)
+        # num_classes is the output fc dimension, zero-initialize last BNs
+        self.encoder = base_encoder(num_classes=dim, zero_init_residual=True)
 
         # build a 3-layer projector
         prev_dim = self.encoder.fc.weight.shape[1]
+        self.encoder.fc.bias.requires_grad = False # not use bias as followed by BN
         self.encoder.fc = nn.Sequential(nn.Linear(prev_dim, prev_dim, bias=False),
-                                        nn.BatchNorm1d(prev_dim, affine=True),
+                                        nn.BatchNorm1d(prev_dim),
                                         nn.ReLU(inplace=True), # first layer
                                         nn.Linear(prev_dim, prev_dim, bias=False),
-                                        nn.BatchNorm1d(prev_dim, affine=True),
+                                        nn.BatchNorm1d(prev_dim),
                                         nn.ReLU(inplace=True), # second layer
-                                        self.encoder.fc, # caveat: this fc layer has bias but canceled out by BN 
+                                        self.encoder.fc,
                                         nn.BatchNorm1d(dim, affine=False)) # output layer
 
         # build a 2-layer predictor
         self.predictor = nn.Sequential(nn.Linear(dim, pred_dim, bias=False),
-                                        nn.BatchNorm1d(pred_dim, affine=True),
+                                        nn.BatchNorm1d(pred_dim),
                                         nn.ReLU(inplace=True), # hidden layer
-                                        nn.Linear(pred_dim, dim, bias=True)) # output layer
+                                        nn.Linear(pred_dim, dim)) # output layer
 
     def forward(self, x1, x2):
         """

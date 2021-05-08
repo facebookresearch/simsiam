@@ -82,6 +82,8 @@ parser.add_argument('--dim', default=2048, type=int,
                     help='feature dimension (default: 2048)')
 parser.add_argument('--pred-dim', default=512, type=int,
                     help='hidden dimension of the predictor (default: 512)')
+parser.add_argument('--fix-pred-lr', action='store_true',
+                    help='Fix learning rate for the predictor')
 
 def main():
     args = parser.parse_args()
@@ -179,7 +181,13 @@ def main_worker(gpu, ngpus_per_node, args):
     # define loss function (criterion) and optimizer
     criterion = nn.CosineSimilarity(dim=1).cuda(args.gpu)
 
-    optimizer = torch.optim.SGD(model.parameters(), args.lr,
+    if args.fix_pred_lr:
+        optim_params = [{'params': model.module.encoder.parameters(), 'fix_lr': False},
+                        {'params': model.module.predictor.parameters(), 'fix_lr': True}]
+    else:
+        optim_params = model.parameters()
+
+    optimizer = torch.optim.SGD(optim_params, args.lr,
                                 momentum=args.momentum,
                                 weight_decay=args.weight_decay)
 
@@ -343,7 +351,10 @@ def adjust_learning_rate(optimizer, epoch, args):
     """Decay the learning rate based on schedule"""
     lr = args.lr * 0.5 * (1. + math.cos(math.pi * epoch / args.epochs))
     for param_group in optimizer.param_groups:
-        param_group['lr'] = lr
+        if 'fix_lr' in param_group and param_group['fix_lr']:
+            param_group['lr'] = args.lr
+        else:
+            param_group['lr'] = lr
 
 
 if __name__ == '__main__':
