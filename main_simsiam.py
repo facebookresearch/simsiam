@@ -217,7 +217,7 @@ def main_worker(gpu, ngpus_per_node, args):
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                      std=[0.229, 0.224, 0.225])
 
-    # SimSiam v2's aug: similar to SimCLR https://arxiv.org/abs/2002.05709
+    # MoCo v2's aug: similar to SimCLR https://arxiv.org/abs/2002.05709
     augmentation = [
         transforms.RandomResizedCrop(224, scale=(0.2, 1.)),
         transforms.RandomApply([

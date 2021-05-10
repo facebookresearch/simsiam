@@ -212,7 +212,9 @@ def main_worker(gpu, ngpus_per_node, args):
     # optimize only the linear classifier
     parameters = list(filter(lambda p: p.requires_grad, model.parameters()))
     assert len(parameters) == 2  # fc.weight, fc.bias
-    optimizer = torch.optim.SGD(parameters, args.lr,
+
+    init_lr = args.lr * args.batch_size / 256
+    optimizer = torch.optim.SGD(parameters, init_lr,
                                 momentum=args.momentum,
                                 weight_decay=args.weight_decay)
     if args.lars:
@@ -284,7 +286,7 @@ def main_worker(gpu, ngpus_per_node, args):
     for epoch in range(args.start_epoch, args.epochs):
         if args.distributed:
             train_sampler.set_epoch(epoch)
-        adjust_learning_rate(optimizer, epoch, args)
+        adjust_learning_rate(optimizer, init_lr, epoch, args)
 
         # train for one epoch
         train(train_loader, model, criterion, optimizer, epoch, args)
@@ -476,11 +478,11 @@ class ProgressMeter(object):
         return '[' + fmt + '/' + fmt.format(num_batches) + ']'
 
 
-def adjust_learning_rate(optimizer, epoch, args):
+def adjust_learning_rate(optimizer, init_lr, epoch, args):
     """Decay the learning rate based on schedule"""
-    lr = args.lr * 0.5 * (1. + math.cos(math.pi * epoch / args.epochs))
+    cur_lr = init_lr * 0.5 * (1. + math.cos(math.pi * epoch / args.epochs))
     for param_group in optimizer.param_groups:
-        param_group['lr'] = lr
+        param_group['lr'] = cur_lr
 
 
 def accuracy(output, target, topk=(1,)):
