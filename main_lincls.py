@@ -42,11 +42,11 @@ parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
 parser.add_argument('-b', '--batch-size', default=4096, type=int,
                     metavar='N',
-                    help='mini-batch size (default: 256), this is the total '
+                    help='mini-batch size (default: 4096), this is the total '
                          'batch size of all GPUs on the current node when '
                          'using Data Parallel or Distributed Data Parallel')
 parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
-                    metavar='LR', help='initial learning rate', dest='lr')
+                    metavar='LR', help='initial (base) learning rate', dest='lr')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                     help='momentum')
 parser.add_argument('--wd', '--weight-decay', default=0., type=float,
@@ -76,10 +76,11 @@ parser.add_argument('--multiprocessing-distributed', action='store_true',
                          'fastest way to use PyTorch for either single node or '
                          'multi node data parallel training')
 
+# additional configs:
 parser.add_argument('--pretrained', default='', type=str,
                     help='path to moco pretrained checkpoint')
 parser.add_argument('--lars', action='store_true',
-                    help='Use LARS optimizer instead of SGD')
+                    help='Use LARS')
 
 best_acc1 = 0
 
@@ -276,7 +277,7 @@ def main_worker(gpu, ngpus_per_node, args):
             transforms.ToTensor(),
             normalize,
         ])),
-        batch_size=args.batch_size, shuffle=False,
+        batch_size=256, shuffle=False,
         num_workers=args.workers, pin_memory=True)
 
     if args.evaluate:
