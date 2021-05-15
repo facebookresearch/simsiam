@@ -147,6 +147,9 @@ def main_worker(gpu, ngpus_per_node, args):
         models.__dict__[args.arch],
         args.dim, args.pred_dim)
 
+    # infer learning rate before changing batch size
+    init_lr = args.lr * args.batch_size / 256
+
     if args.distributed:
         # Apply SyncBN
         model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
@@ -187,7 +190,6 @@ def main_worker(gpu, ngpus_per_node, args):
     else:
         optim_params = model.parameters()
 
-    init_lr = args.lr * args.batch_size / 256
     optimizer = torch.optim.SGD(optim_params, init_lr,
                                 momentum=args.momentum,
                                 weight_decay=args.weight_decay)

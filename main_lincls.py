@@ -178,6 +178,9 @@ def main_worker(gpu, ngpus_per_node, args):
         else:
             print("=> no checkpoint found at '{}'".format(args.pretrained))
 
+    # infer learning rate before changing batch size
+    init_lr = args.lr * args.batch_size / 256
+
     if args.distributed:
         # For multiprocessing distributed, DistributedDataParallel constructor
         # should always set the single device scope, otherwise,
@@ -214,11 +217,11 @@ def main_worker(gpu, ngpus_per_node, args):
     parameters = list(filter(lambda p: p.requires_grad, model.parameters()))
     assert len(parameters) == 2  # fc.weight, fc.bias
 
-    init_lr = args.lr * args.batch_size / 256
     optimizer = torch.optim.SGD(parameters, init_lr,
                                 momentum=args.momentum,
                                 weight_decay=args.weight_decay)
     if args.lars:
+        print("=> use LARS optimizer.")
         from apex.parallel.LARC import LARC
         optimizer = LARC(optimizer=optimizer, trust_coefficient=.001, clip=False)
 
