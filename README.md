@@ -48,7 +48,7 @@ The above command uses LARS optimizer and a default batch size of 4096.
 
 ### Models and Logs
 
-Our pre-trained ResNet-50 models and logs with 8 NVIDIA V100 GPUs, CUDA 10.2:
+Our pre-trained ResNet-50 models and logs with 8 NVIDIA V100 GPUs, CUDA 10.1/CuDNN 7.6.5, PyTorch 1.7.0:
 <table><tbody>
 <!-- START TABLE -->
 <!-- TABLE HEADER -->
