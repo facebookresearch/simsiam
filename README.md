@@ -6,7 +6,7 @@
 
 This is a PyTorch implementation of the [SimSiam paper](https://arxiv.org/abs/2011.10566):
 ```
-@Article{chen2020mocov2,
+@Article{chen2020simsiam,
   author  = {Xinlei Chen and Kaiming He},
   title   = {Exploring Simple Siamese Representation Learning},
   journal = {arXiv preprint arXiv:2011.10566},
@@ -73,7 +73,7 @@ Our pre-trained ResNet-50 models and logs:
 </tr>
 </tbody></table>
 
-Setting for the above: 8 NVIDIA V100 GPUs, CUDA 10.1/CuDNN 7.6.5, PyTorch 1.7.0.
+Settings for the above: 8 NVIDIA V100 GPUs, CUDA 10.1/CuDNN 7.6.5, PyTorch 1.7.0.
 
 ### Transferring to Object Detection
 
