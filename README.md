@@ -32,7 +32,7 @@ python main_simsiam.py \
   --fix-pred-lr \
   [your imagenet-folder with train and val folders]
 ```
-The script uses all the default hyper-parameters as described in the paper, and uses the default augmentation recipe from MoCo v2(https://arxiv.org/abs/2003.04297). 
+The script uses all the default hyper-parameters as described in the paper, and uses the default augmentation recipe from [MoCo v2](https://arxiv.org/abs/2003.04297). 
 
 The above command performs pre-training with a non-decaying predictor learning rate for 100 epochs, corresponding to the last row of Table 1 in the paper. 
 
@@ -73,7 +73,7 @@ Our pre-trained ResNet-50 models and logs:
 </tr>
 </tbody></table>
 
-Setting: 8 NVIDIA V100 GPUs, CUDA 10.1/CuDNN 7.6.5, PyTorch 1.7.0.
+Setting for the above: 8 NVIDIA V100 GPUs, CUDA 10.1/CuDNN 7.6.5, PyTorch 1.7.0.
 
 ### Transferring to Object Detection
 
