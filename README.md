@@ -59,10 +59,10 @@ Our pre-trained ResNet-50 models and logs with 8 NVIDIA V100 GPUs, CUDA 10.2:
 <!-- TABLE BODY -->
 <tr>
 <td align="left">100</td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/simsiam/models/100ep/pretrain/checkpoint_0099.pth.tar">download</a></td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/simsiam/logs/100ep/pre-train.log">download</a></td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/simsiam/models/100ep/finetune/model_best.pth.tar">download</a></td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/simsiam/logs/100ep/finetune.log">download</a></td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/simsiam/models/100ep/pretrain/checkpoint_0099.pth.tar">link</a></td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/simsiam/logs/100ep/pre-train.log">link</a></td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/simsiam/models/100ep/finetune/model_best.pth.tar">link</a></td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/simsiam/logs/100ep/finetune.log">link</a></td>
 <td align="center">68.1</td>
 </tr>
 </tbody></table>
