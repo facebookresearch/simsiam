@@ -55,7 +55,7 @@ Our pre-trained ResNet-50 models and logs with 8 NVIDIA V100 GPUs, CUDA 10.2:
 <th valign="bottom">pre-train<br/>log</th>
 <th valign="bottom">linear cls.<br/>ckpt</th>
 <th valign="bottom">linear cls.<br/>log</th>
-<th valign="bottom">top-1 acc.</th>
+<th valign="center">top-1 acc.</th>
 <!-- TABLE BODY -->
 <tr>
 <td align="left">100</td>
