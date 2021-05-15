@@ -1,7 +1,7 @@
 # SimSiam: Exploring Simple Siamese Representation Learning
 
 <p align="center">
-    <img width="300" alt="simsiam" src="https://user-images.githubusercontent.com/2420753/118343499-4c410100-b4de-11eb-9313-d49e65440a7e.png">
+    <img width="400" alt="simsiam" src="https://user-images.githubusercontent.com/2420753/118343499-4c410100-b4de-11eb-9313-d49e65440a7e.png">
 </p>
 
 This is a PyTorch implementation of the [SimSiam paper](https://arxiv.org/abs/2011.10566):
@@ -52,7 +52,7 @@ The above command uses LARS optimizer and a default batch size of 4096.
 
 ### Models and Logs
 
-Our pre-trained ResNet-50 models and logs with 8 NVIDIA V100 GPUs, CUDA 10.1/CuDNN 7.6.5, PyTorch 1.7.0:
+Our pre-trained ResNet-50 models and logs:
 <table><tbody>
 <!-- START TABLE -->
 <!-- TABLE HEADER -->
@@ -73,6 +73,7 @@ Our pre-trained ResNet-50 models and logs with 8 NVIDIA V100 GPUs, CUDA 10.1/CuD
 </tr>
 </tbody></table>
 
+Setting: 8 NVIDIA V100 GPUs, CUDA 10.1/CuDNN 7.6.5, PyTorch 1.7.0.
 
 ### Transferring to Object Detection
 
