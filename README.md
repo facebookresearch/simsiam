@@ -1,5 +1,9 @@
 # SimSiam: Exploring Simple Siamese Representation Learning
 
+<p align="center">
+    <img width="300" alt="simsiam" src="https://user-images.githubusercontent.com/2420753/118343499-4c410100-b4de-11eb-9313-d49e65440a7e.png">
+</p>
+
 This is a PyTorch implementation of the [SimSiam paper](https://arxiv.org/abs/2011.10566):
 ```
 @Article{chen2020mocov2,
