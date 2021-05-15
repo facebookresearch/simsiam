@@ -28,7 +28,9 @@ python main_simsiam.py \
   --fix-pred-lr \
   [your imagenet-folder with train and val folders]
 ```
-The script uses all the default hyper-parameters as described in the paper, and uses the default augmentation recipe from MoCo v2(https://arxiv.org/abs/2003.04297). The above command performs unsupervised pre-training with a non-decaying predictor learning rate for 100 epochs, corresponding to the last row of Table 1 in the paper. 
+The script uses all the default hyper-parameters as described in the paper, and uses the default augmentation recipe from MoCo v2(https://arxiv.org/abs/2003.04297). 
+
+The above command performs pre-training with a non-decaying predictor learning rate for 100 epochs, corresponding to the last row of Table 1 in the paper. 
 
 ### Linear Classification
 
@@ -42,7 +44,7 @@ python main_lincls.py \
   [your imagenet-folder with train and val folders]
 ```
 
-The command uses LARS optimizer and a default batch size of 4096.
+The above command uses LARS optimizer and a default batch size of 4096.
 
 ### Models and Logs
 
@@ -58,7 +60,7 @@ Our pre-trained ResNet-50 models and logs with 8 NVIDIA V100 GPUs, CUDA 10.2:
 <th valign="center">top-1 acc.</th>
 <!-- TABLE BODY -->
 <tr>
-<td align="left">100</td>
+<td align="center">100</td>
 <td align="center"><a href="https://dl.fbaipublicfiles.com/simsiam/models/100ep/pretrain/checkpoint_0099.pth.tar">link</a></td>
 <td align="center"><a href="https://dl.fbaipublicfiles.com/simsiam/logs/100ep/pre-train.log">link</a></td>
 <td align="center"><a href="https://dl.fbaipublicfiles.com/simsiam/models/100ep/finetune/model_best.pth.tar">link</a></td>
@@ -70,7 +72,7 @@ Our pre-trained ResNet-50 models and logs with 8 NVIDIA V100 GPUs, CUDA 10.2:
 
 ### Transferring to Object Detection
 
-Same as MoCo[MoCo](https://github.com/facebookresearch/moco) for object detection transfer, please see [moco/detection](https://github.com/facebookresearch/moco/tree/master/detection).
+Same as [MoCo](https://github.com/facebookresearch/moco) for object detection transfer, please see [moco/detection](https://github.com/facebookresearch/moco/tree/master/detection).
 
 
 ### License
