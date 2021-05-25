@@ -80,7 +80,7 @@ Our pre-trained ResNet-50 models and logs:
 <td align="center"><a href="https://dl.fbaipublicfiles.com/simsiam/logs/100ep-256bs/pretrain.log">link</a></td>
 <td align="center"><a href="https://dl.fbaipublicfiles.com/simsiam/models/100ep-256bs/linear/model_best.pth.tar">link</a></td>
 <td align="center"><a href="https://dl.fbaipublicfiles.com/simsiam/logs/100ep-256bs/linear.log">link</a></td>
-<td align="center">68.1</td>
+<td align="center">68.3</td>
 </tr>
 </tbody></table>
 
