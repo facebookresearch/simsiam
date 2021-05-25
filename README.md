@@ -57,6 +57,7 @@ Our pre-trained ResNet-50 models and logs:
 <!-- START TABLE -->
 <!-- TABLE HEADER -->
 <th valign="bottom">pre-train<br/>epochs</th>
+<th valign="bottom">batch<br/>size</th>
 <th valign="bottom">pre-train<br/>ckpt</th>
 <th valign="bottom">pre-train<br/>log</th>
 <th valign="bottom">linear cls.<br/>ckpt</th>
@@ -65,10 +66,20 @@ Our pre-trained ResNet-50 models and logs:
 <!-- TABLE BODY -->
 <tr>
 <td align="center">100</td>
+<td align="center">512</td>
 <td align="center"><a href="https://dl.fbaipublicfiles.com/simsiam/models/100ep/pretrain/checkpoint_0099.pth.tar">link</a></td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/simsiam/logs/100ep/pre-train.log">link</a></td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/simsiam/models/100ep/finetune/model_best.pth.tar">link</a></td>
-<td align="center"><a href="https://dl.fbaipublicfiles.com/simsiam/logs/100ep/finetune.log">link</a></td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/simsiam/logs/100ep/pretrain.log">link</a></td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/simsiam/models/100ep/linear/model_best.pth.tar">link</a></td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/simsiam/logs/100ep/linear.log">link</a></td>
+<td align="center">68.1</td>
+</tr>
+<tr>
+<td align="center">100</td>
+<td align="center">256</td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/simsiam/models/100ep-256bs/pretrain/checkpoint_0099.pth.tar">link</a></td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/simsiam/logs/100ep-256bs/pretrain.log">link</a></td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/simsiam/models/100ep-256bs/linear/model_best.pth.tar">link</a></td>
+<td align="center"><a href="https://dl.fbaipublicfiles.com/simsiam/logs/100ep-256bs/linear.log">link</a></td>
 <td align="center">68.1</td>
 </tr>
 </tbody></table>
