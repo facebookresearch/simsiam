@@ -146,6 +146,7 @@ def main_worker(gpu, ngpus_per_node, args):
             args.rank = args.rank * ngpus_per_node + gpu
         dist.init_process_group(backend=args.dist_backend, init_method=args.dist_url,
                                 world_size=args.world_size, rank=args.rank)
+        torch.distributed.barrier()
     # create model
     print("=> creating model '{}'".format(args.arch))
     model = simsiam.builder.SimSiam(

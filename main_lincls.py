@@ -83,7 +83,7 @@ parser.add_argument('--multiprocessing-distributed', action='store_true',
 
 # additional configs:
 parser.add_argument('--pretrained', default='', type=str,
-                    help='path to moco pretrained checkpoint')
+                    help='path to simsiam pretrained checkpoint')
 parser.add_argument('--lars', action='store_true',
                     help='Use LARS')
 
@@ -147,6 +147,7 @@ def main_worker(gpu, ngpus_per_node, args):
             args.rank = args.rank * ngpus_per_node + gpu
         dist.init_process_group(backend=args.dist_backend, init_method=args.dist_url,
                                 world_size=args.world_size, rank=args.rank)
+        torch.distributed.barrier()
     # create model
     print("=> creating model '{}'".format(args.arch))
     model = models.__dict__[args.arch]()
