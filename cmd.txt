@@ -1,0 +1,40 @@
+CUDA_VISIBLE_DEVICES=1,2 python main_lincls.py \
+  -a resnet50 \
+  --dist-url 'tcp://localhost:10001' --multiprocessing-distributed --world-size 1 --rank 0 \
+  --pretrained '/data3/sehyun/waffle/benchmark_logs/imagenet/epoch=199-step=2001800.ckpt' \
+  --lars \
+  --workers 64 \
+  --batch-size 1024 \
+  dummy
+
+  # lightly - original simsiam - 100 epoch checkpoint
+  ##  * Acc@1 6.156 Acc@5 16.274
+  # lightly - original simsiam - 200 epoch checkpoint 
+  ##  * Acc@1 16.618 Acc@5 35.714
+
+CUDA_VISIBLE_DEVICES=2 python main_lincls_original.py \
+  -a resnet50 \
+  --dist-url 'tcp://localhost:10001' --multiprocessing-distributed --world-size 1 --rank 0 \
+  --pretrained '/data3/sehyun/waffle/benchmark_logs/imagenet/checkpoint_0099.pth.tar' \
+  --lars \
+  --workers 64 \
+  --batch-size 1024 \
+  dummy
+
+CUDA_VISIBLE_DEVICES=2 python main_lincls_original.py \
+  -a resnet50 \
+  --dist-url 'tcp://localhost:10001' --world-size 1 --rank 0 \
+  --pretrained '/data3/sehyun/waffle/benchmark_logs/imagenet/checkpoint_0099.pth.tar' \
+  --lars \
+  --workers 64 \
+  --batch-size 1024 \
+  dummy
+
+
+CUDA_VISIBLE_DEVICES=2 python main_simsiam.py \
+  -a resnet50 \
+  --dist-url 'tcp://localhost:10001' --multiprocessing-distributed --world-size 1 --rank 0 \
+  --fix-pred-lr \
+  --batch-size 64 \
+  --output-path output \
+  /data/ILSVRC/Data/CLS-LOC

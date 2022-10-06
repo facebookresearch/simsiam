@@ -86,6 +86,8 @@ parser.add_argument('--pretrained', default='', type=str,
                     help='path to simsiam pretrained checkpoint')
 parser.add_argument('--lars', action='store_true',
                     help='Use LARS')
+parser.add_argument('--output-path', default=None, type=str,
+                    help='Where to save checkpoints')
 
 best_acc1 = 0
 
@@ -170,25 +172,14 @@ def main_worker(gpu, ngpus_per_node, args):
             state_dict = checkpoint['state_dict']
             for k in list(state_dict.keys()):
                 # retain only encoder up to before the embedding layer
-                """
                 if k.startswith('module.encoder') and not k.startswith('module.encoder.fc'):
                     # remove prefix
                     state_dict[k[len("module.encoder."):]] = state_dict[k]
-                """
-                if k.startswith('backbone'):
-                    # remove prefix
-                    state_dict[k[len("backbone."):]] = state_dict[k]
                 # delete renamed or unused k
                 del state_dict[k]
-            
-            new_state_dict = dict()
-            for orig, prev in zip(model.state_dict().keys(), state_dict.keys()):
-                assert model.state_dict()[orig].shape == state_dict[prev].shape, f"{orig} & {prev} : shape not matched - {model.state_dict()[orig].shape} & {state_dict[prev].shape}"
-                new_state_dict[orig] = state_dict[prev]
 
             args.start_epoch = 0
-            #msg = model.load_state_dict(state_dict, strict=False)
-            msg = model.load_state_dict(new_state_dict, strict=False)
+            msg = model.load_state_dict(state_dict, strict=False)
             assert set(msg.missing_keys) == {"fc.weight", "fc.bias"}
 
             print("=> loaded pre-trained model '{}'".format(args.pretrained))
@@ -267,8 +258,8 @@ def main_worker(gpu, ngpus_per_node, args):
     cudnn.benchmark = True
 
     # Data loading code
-    traindir = '/data/ILSVRC/Data/CLS-LOC/train' #os.path.join(args.data, 'train')
-    valdir = '/data/ILSVRC/Data/CLS-LOC/val' #os.path.join(args.data, 'val')
+    traindir = os.path.join(args.data, 'train')
+    valdir = os.path.join(args.data, 'val')
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                      std=[0.229, 0.224, 0.225])
 
@@ -327,7 +318,7 @@ def main_worker(gpu, ngpus_per_node, args):
                 'state_dict': model.state_dict(),
                 'best_acc1': best_acc1,
                 'optimizer' : optimizer.state_dict(),
-            }, is_best)
+            }, is_best, save_path=args.output_path)
             if epoch == args.start_epoch:
                 sanity_check(model.state_dict(), args.pretrained)
 
@@ -428,10 +419,12 @@ def validate(val_loader, model, criterion, args):
     return top1.avg
 
 
-def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
-    torch.save(state, filename)
+def save_checkpoint(state, is_best, filename='checkpoint.pth.tar', save_path=None):
+    if save_path is None:
+        save_path = '.'
+    torch.save(state, os.path.join(save_path, filename))
     if is_best:
-        shutil.copyfile(filename, 'model_best.pth.tar')
+        shutil.copyfile(os.path.join(save_path, filename), os.path.join(save_path, 'model_best.pth.tar'))
 
 
 def sanity_check(state_dict, pretrained_weights):
@@ -443,7 +436,6 @@ def sanity_check(state_dict, pretrained_weights):
     checkpoint = torch.load(pretrained_weights, map_location="cpu")
     state_dict_pre = checkpoint['state_dict']
 
-    """
     for k in list(state_dict.keys()):
         # only ignore fc layer
         if 'fc.weight' in k or 'fc.bias' in k:
@@ -455,19 +447,7 @@ def sanity_check(state_dict, pretrained_weights):
 
         assert ((state_dict[k].cpu() == state_dict_pre[k_pre]).all()), \
             '{} is changed in linear classifier training.'.format(k)
-    """
-    # rename moco pre-trained keys
-    for k in list(state_dict_pre.keys()):
-        # retain only encoder up to before the embedding layer
-        if not k.startswith('backbone'):
-            del state_dict_pre[k]
-    assert len(state_dict_pre)+len(["fc.weight", "fc.bias"]) == len(state_dict.keys())
 
-    for k, k_pre in zip(list(state_dict.keys()), list(state_dict_pre.keys())):
-        if 'fc.weight' in k or 'fc.bias' in k:
-            continue
-        assert ((state_dict[k].cpu() == state_dict_pre[k_pre]).all()), \
-            '{} is changed in linear classifier training.'.format(k)
     print("=> sanity check passed.")
 
 

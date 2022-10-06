@@ -89,6 +89,9 @@ parser.add_argument('--pred-dim', default=512, type=int,
                     help='hidden dimension of the predictor (default: 512)')
 parser.add_argument('--fix-pred-lr', action='store_true',
                     help='Fix learning rate for the predictor')
+parser.add_argument('--output-path', default=None, type=str,
+                    help='Where to save checkpoints')
+
 
 def main():
     args = parser.parse_args()
@@ -266,7 +269,10 @@ def main_worker(gpu, ngpus_per_node, args):
                 'arch': args.arch,
                 'state_dict': model.state_dict(),
                 'optimizer' : optimizer.state_dict(),
-            }, is_best=False, filename='checkpoint_{:04d}.pth.tar'.format(epoch))
+            }, 
+                is_best=False, 
+                filename='checkpoint_{:04d}.pth.tar'.format(epoch), 
+                save_path=args.output_path)
 
 
 def train(train_loader, model, criterion, optimizer, epoch, args):
@@ -309,10 +315,13 @@ def train(train_loader, model, criterion, optimizer, epoch, args):
             progress.display(i)
 
 
-def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
-    torch.save(state, filename)
+def save_checkpoint(state, is_best, filename='checkpoint.pth.tar', save_path=None):
+    if save_path is None:
+        save_path = '.'
+    torch.save(state, os.path.join(save_path, filename))
     if is_best:
-        shutil.copyfile(filename, 'model_best.pth.tar')
+        shutil.copyfile(os.path.join(save_path, filename), os.path.join(save_path, 'model_best.pth.tar'))
+
 
 
 class AverageMeter(object):
