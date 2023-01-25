@@ -55,7 +55,7 @@ parser.add_argument('-a', '--arch', metavar='ARCH', default='resnet50',
                     help='model architecture: ' +
                         ' | '.join(model_names) +
                         ' (default: resnet50)')
-parser.add_argument('-j', '--workers', default=5, type=int, metavar='N',
+parser.add_argument('-j', '--workers', default=32, type=int, metavar='N',
                     help='number of data loading workers (default: 32)')
 parser.add_argument('--epochs', default=100, type=int, metavar='N',
                     help='number of total epochs to run')
@@ -123,10 +123,15 @@ def main():
         os.makedirs(expt_sub_dir)
 
     if args.dataset == 'CIFAR10':
-        args.epochs = 500
+        args.epochs = 800
         args.lr = 0.03
-        args.batch_size = 512
-        print(f"Changed hyperparameters for CIFAR10 (epochs {args.epochs} lr {args.lr} batch_size {args.batch_size})")
+        #args.batch_size = 512
+        args.batch_size = 2048
+        args.workers = 4
+        args.weight_decay = 0.0005
+        print(f"Changed hyperparameters for CIFAR10")
+
+    print(args)
 
     if args.seed is not None:
         random.seed(args.seed)
@@ -326,7 +331,7 @@ def main_worker(gpu, ngpus_per_node, args):
                 'arch': args.arch,
                 'state_dict': model.state_dict(),
                 'optimizer' : optimizer.state_dict(),
-            }, is_best=False, filename='checkpoint_{:04d}.pth.tar'.format(epoch))
+            }, is_best=False, filename=os.path.join(args.expt_dir,'checkpoint_{:04d}.pth.tar'.format(epoch)))
 
 
     # shut down the writer at the end of training
