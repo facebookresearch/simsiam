@@ -13,6 +13,7 @@ import random
 import shutil
 import time
 import warnings
+import pathlib
 
 import torch
 import torch.nn as nn
@@ -26,23 +27,35 @@ import torch.utils.data.distributed
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import torchvision.models as models
+from torch.utils.tensorboard import SummaryWriter
+
+from models import resnet_cifar
 
 import simsiam.loader
 import simsiam.builder
+
+normalize_imagenet = transforms.Normalize(
+    mean=[0.485, 0.456, 0.406],
+    std=[0.229, 0.224, 0.225]
+)
+
+normalize_cifar10 = transforms.Normalize(
+    mean=[0.4914, 0.4822, 0.4465],
+    std=[0.2023, 0.1994, 0.2010]
+)
 
 model_names = sorted(name for name in models.__dict__
     if name.islower() and not name.startswith("__")
     and callable(models.__dict__[name]))
 
 parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
-parser.add_argument('data', metavar='DIR',
-                    help='path to dataset')
+parser.add_argument("--dataset_path", type=str, default="/data/datasets/ImageNet/imagenet-pytorch", help="path to dataset")
 parser.add_argument('-a', '--arch', metavar='ARCH', default='resnet50',
                     choices=model_names,
                     help='model architecture: ' +
                         ' | '.join(model_names) +
                         ' (default: resnet50)')
-parser.add_argument('-j', '--workers', default=32, type=int, metavar='N',
+parser.add_argument('-j', '--workers', default=5, type=int, metavar='N',
                     help='number of data loading workers (default: 32)')
 parser.add_argument('--epochs', default=100, type=int, metavar='N',
                     help='number of total epochs to run')
@@ -82,6 +95,11 @@ parser.add_argument('--multiprocessing-distributed', action='store_true',
                          'fastest way to use PyTorch for either single node or '
                          'multi node data parallel training')
 
+parser.add_argument('--dataset', default='ImageNet', type=str,
+                    help='dataset name. Should be one of ImageNet or CIFAR10.')
+
+parser.add_argument('--expt-name', default='default_experiment', type=str, help='Name of the experiment')
+
 # simsiam specific configs:
 parser.add_argument('--dim', default=2048, type=int,
                     help='feature dimension (default: 2048)')
@@ -90,8 +108,25 @@ parser.add_argument('--pred-dim', default=512, type=int,
 parser.add_argument('--fix-pred-lr', action='store_true',
                     help='Fix learning rate for the predictor')
 
+
+
 def main():
     args = parser.parse_args()
+
+    # Saving checkpoint and config pased on experiment mode
+    expt_dir = "experiments"
+    expt_sub_dir = os.path.join(expt_dir, args.expt_name)
+
+    args.expt_dir = pathlib.Path(expt_sub_dir)
+
+    if not os.path.exists(expt_sub_dir):
+        os.makedirs(expt_sub_dir)
+
+    if args.dataset == 'CIFAR10':
+        args.epochs = 500
+        args.lr = 0.03
+        args.batch_size = 512
+        print(f"Changed hyperparameters for CIFAR10 (epochs {args.epochs} lr {args.lr} batch_size {args.batch_size})")
 
     if args.seed is not None:
         random.seed(args.seed)
@@ -147,11 +182,17 @@ def main_worker(gpu, ngpus_per_node, args):
         dist.init_process_group(backend=args.dist_backend, init_method=args.dist_url,
                                 world_size=args.world_size, rank=args.rank)
         torch.distributed.barrier()
+    
     # create model
-    print("=> creating model '{}'".format(args.arch))
-    model = simsiam.builder.SimSiam(
-        models.__dict__[args.arch],
-        args.dim, args.pred_dim)
+    if args.dataset == 'CIFAR10': 
+        print(f"=> creating model {resnet_cifar.resnet18.__name__}")
+        model = simsiam.builder.SimSiam(resnet_cifar.resnet18, args.dim, args.pred_dim)
+    elif args.dataset == 'ImageNet':
+        print(f"=> creating model {args.arch}")
+        model = simsiam.builder.SimSiam(
+            models.__dict__[args.arch],
+            args.dim, 
+            args.pred_dim)
 
     # infer learning rate before changing batch size
     init_lr = args.lr * args.batch_size / 256
@@ -219,28 +260,47 @@ def main_worker(gpu, ngpus_per_node, args):
             print("=> no checkpoint found at '{}'".format(args.resume))
 
     cudnn.benchmark = True
+    writer = None
+    if args.rank == 0:
+        writer = SummaryWriter(log_dir=os.path.join(args.expt_dir, f"tensorboard_pretraining_{args.epochs}_{init_lr}"))
 
-    # Data loading code
-    traindir = os.path.join(args.data, 'train')
-    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                     std=[0.229, 0.224, 0.225])
+    if args.dataset == 'ImageNet':
+        # Data loading code
+        traindir = os.path.join(args.dataset_path, 'train')
 
-    # MoCo v2's aug: similar to SimCLR https://arxiv.org/abs/2002.05709
-    augmentation = [
-        transforms.RandomResizedCrop(224, scale=(0.2, 1.)),
-        transforms.RandomApply([
-            transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)  # not strengthened
-        ], p=0.8),
-        transforms.RandomGrayscale(p=0.2),
-        transforms.RandomApply([simsiam.loader.GaussianBlur([.1, 2.])], p=0.5),
-        transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(),
-        normalize
-    ]
+        # MoCo v2's aug: similar to SimCLR https://arxiv.org/abs/2002.05709
+        augmentation = [
+            transforms.RandomResizedCrop(224, scale=(0.2, 1.)),
+            transforms.RandomApply([
+                transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)  # not strengthened
+            ], p=0.8),
+            transforms.RandomGrayscale(p=0.2),
+            transforms.RandomApply([simsiam.loader.GaussianBlur([.1, 2.])], p=0.5),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            normalize_imagenet,
+        ]
 
-    train_dataset = datasets.ImageFolder(
-        traindir,
-        simsiam.loader.TwoCropsTransform(transforms.Compose(augmentation)))
+        train_dataset = datasets.ImageFolder(
+            traindir,
+            simsiam.loader.TwoCropsTransform(transforms.Compose(augmentation)))
+    
+    elif args.dataset == 'CIFAR10':
+        train_transform = simsiam.loader.TwoCropsTransform(transforms.Compose(
+                [
+                    transforms.RandomResizedCrop(size=32, scale=(0.2, 1.)),
+                    transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)], p=0.8),
+                    transforms.RandomGrayscale(p=0.2),
+                    transforms.RandomHorizontalFlip(),
+                    transforms.ToTensor(),
+                    normalize_cifar10,
+                ]
+            )
+        )
+
+        train_dataset = datasets.CIFAR10(root='datasets/CIFAR10', train=True, download=True, transform=train_transform)
+    else:
+        raise ValueError("Dataset not supported.")
 
     if args.distributed:
         train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset)
@@ -257,7 +317,7 @@ def main_worker(gpu, ngpus_per_node, args):
         adjust_learning_rate(optimizer, init_lr, epoch, args)
 
         # train for one epoch
-        train(train_loader, model, criterion, optimizer, epoch, args)
+        train(train_loader, model, criterion, optimizer, epoch, args, writer)
 
         if not args.multiprocessing_distributed or (args.multiprocessing_distributed
                 and args.rank % ngpus_per_node == 0):
@@ -269,7 +329,12 @@ def main_worker(gpu, ngpus_per_node, args):
             }, is_best=False, filename='checkpoint_{:04d}.pth.tar'.format(epoch))
 
 
-def train(train_loader, model, criterion, optimizer, epoch, args):
+    # shut down the writer at the end of training
+    if writer is not None and args.rank == 0:
+        writer.close()
+
+
+def train(train_loader, model, criterion, optimizer, epoch, args, writer=None):
     batch_time = AverageMeter('Time', ':6.3f')
     data_time = AverageMeter('Data', ':6.3f')
     losses = AverageMeter('Loss', ':.4f')
@@ -307,6 +372,10 @@ def train(train_loader, model, criterion, optimizer, epoch, args):
 
         if i % args.print_freq == 0:
             progress.display(i)
+        
+        # write log epoch-wise
+        if args.rank == 0:
+            writer.add_scalar('Pre-training/Loss', loss.item(), epoch + 1)
 
 
 def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
@@ -367,4 +436,6 @@ def adjust_learning_rate(optimizer, init_lr, epoch, args):
 
 
 if __name__ == '__main__':
+
+
     main()
