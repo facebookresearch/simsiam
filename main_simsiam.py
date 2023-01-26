@@ -28,6 +28,7 @@ import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import torchvision.models as models
 from torch.utils.tensorboard import SummaryWriter
+import yaml
 
 from models import resnet_cifar
 
@@ -95,10 +96,9 @@ parser.add_argument('--multiprocessing-distributed', action='store_true',
                          'fastest way to use PyTorch for either single node or '
                          'multi node data parallel training')
 
-parser.add_argument('--dataset', default='ImageNet', type=str,
-                    help='dataset name. Should be one of ImageNet or CIFAR10.')
-
+parser.add_argument('--dataset', default='ImageNet', type=str, help='dataset name. Should be one of ImageNet or CIFAR10.')
 parser.add_argument('--expt-name', default='default_experiment', type=str, help='Name of the experiment')
+parser.add_argument('--save-freq', default=10, type=int, metavar='N', help='checkpoint save frequency (default: 10)')
 
 # simsiam specific configs:
 parser.add_argument('--dim', default=2048, type=int,
@@ -131,7 +131,13 @@ def main():
         args.weight_decay = 0.0005
         print(f"Changed hyperparameters for CIFAR10")
 
-    print(args)
+    args_dict = vars(args)
+    print(args_dict)
+    timestr = time.strftime("%Y%m%d-%H%M%S")
+
+    with open(os.path.join(expt_sub_dir, f"args_dict_{timestr}.yaml"), "w") as f:
+        yaml.dump(args_dict, f)
+
 
     if args.seed is not None:
         random.seed(args.seed)
@@ -325,13 +331,13 @@ def main_worker(gpu, ngpus_per_node, args):
         train(train_loader, model, criterion, optimizer, epoch, args, writer)
 
         if not args.multiprocessing_distributed or (args.multiprocessing_distributed
-                and args.rank % ngpus_per_node == 0):
+                and args.rank % ngpus_per_node == 0) and and epoch % args.save_freq==0:
             save_checkpoint({
                 'epoch': epoch + 1,
                 'arch': args.arch,
                 'state_dict': model.state_dict(),
                 'optimizer' : optimizer.state_dict(),
-            }, is_best=False, filename=os.path.join(args.expt_dir,'checkpoint_{:04d}.pth.tar'.format(epoch)))
+            }, is_best=False, filename=os.path.join(args.expt_dir, 'checkpoint_{:04d}.pth.tar'.format(epoch)))
 
 
     # shut down the writer at the end of training
